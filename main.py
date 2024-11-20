@@ -29,7 +29,9 @@ def select_2(discipline_id: int):
         .limit(1).all()
     return r
 
+
 def select_3(discipline_id: int):
+    '''Знайти середній бал у групах з певного предмета'''
     r = session.query(Discipline.name,
                       Group.name,
                       func.round(func.avg(Grade.grade), 2).label('avg_grade')
@@ -38,7 +40,82 @@ def select_3(discipline_id: int):
         .join(Group) \
         .join(Discipline) \
         .filter(Discipline.id == discipline_id) \
-        .group_by
+        .group_by(Discipline.id).all()
+    return r
+
+
+def select_4():
+    '''Знайти середній бал на потоці (по всій таблиці оцінок).
+    :return:
+    '''
+    r = session.query(func.round(func.avg(Grade.grade), 2).label('avg_grade')) \
+        .select_from(Grade).all()
+    return r
+
+def  select_5(teacher_id: int):
+    """Знайти які курси читає певний викладач."""
+    r = session.query(Discipline.name,
+                      Teacher.fullname) \
+        .select_from(Discipline) \
+        .join(Teacher) \
+        .filter(Teacher.id == teacher_id).all()
+    return r
+
+def select_6(group_id: int):
+    """Знайти список студентів у певній групі"""
+    r = session.query(Student.fullname) \
+        .select_from(Student)\
+        .filter(Student.group_id == group_id).all()
+    return r
+
+def select_7(group_id: int, discipline_id: int):
+    """Знайти оцінки студентів у окремій групі з певного предмета"""
+    r = session.query(Grade.grade,
+                      Grade.date_of,
+                      Student.fullname,
+                      Discipline.name,
+                      Group.name) \
+        .select_from(Grade) \
+        .join(Student) \
+        .join(Discipline) \
+        .join(Group) \
+        .filter(Group.id == group_id, Discipline.id == discipline_id) \
+        .order_by(Group.name).all()
+    return r
+
+def select_8(teacher_id: int):
+    """Знайти середній бал, який ставить певний викладач зі своїх предметів"""
+    r = session.query(Teacher.fullname,
+                      Discipline.name,
+                      func.round(func.avg(Grade.grade), 2).label('avg_grade'))\
+        .select_from(Grade)\
+        .join(Discipline)\
+        .join(Teacher)\
+        .filter(Discipline.teacher_id == teacher_id).all()
+    return r
+
+def select_9(student_id):
+    """Знайти список курсів, які відвідує певний студент"""
+    r = session.query(Student.fullname,
+                      Discipline.name)\
+        .select_from(Discipline)\
+        .join(Grade)\
+        .join(Student)\
+        .filter(Grade.student_id == student_id)\
+        .group_by(Grade.discipline_id).all()
+    return r
+
+def select_10(student_id: int, teacher_id: int):
+    """Список курсів, які певному студенту читає певний викладач"""
+    r = session.query(Discipline.name)\
+        .select_from(Discipline)\
+        .join(Grade)\
+        .join(Student)\
+        .join(Teacher)\
+        .filter(Grade.student_id == student_id, Discipline.teacher_id == teacher_id)\
+        .group_by(Discipline.id).all()
+    return r
+
 
 """
 select s.id, s.fullname, g.grade, g.date_of
@@ -77,6 +154,14 @@ def select_last(discipline_id, group_id):
 
 
 if __name__ == '__main__':
-    # print(select_1())
+    print(select_1())
     print(select_2(1))
+    print(select_3(4))
+    print(select_4())
+    print(select_5(3))
+    print(select_6(2))
+    print(select_7(3, 5))
+    print(select_8(2))
+    print(select_9(7))
+    print(select_10(17, 4))
     # print(select_last(1, 2))
